@@ -11,8 +11,6 @@ name = "frontendengine"
 [dependencies]
 unleash-yggdrasil = { version = "0.20.0" }
 prost = "0.14"
-# Only necessary if using Protobuf well-known types:
-prost-types = "0.14"
 serde = "1.0.228"
 serde_json = "1.0.149"
 
