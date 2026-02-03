@@ -263,6 +263,32 @@ pub unsafe extern "C" fn resolve(
     }
 }
 
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn is_enabled( engine_ptr: *mut c_void,
+                                     toggle_name_ptr: *const c_char,
+                                     context_data: *const u8,
+                                     context_len: usize,
+) -> bool {
+    let result: Result<bool, Error> = (|| {
+        let guard = get_engine(engine_ptr)?;
+        let engine = recover_lock(&guard);
+
+        let toggle_name = get_str(toggle_name_ptr)?;
+
+        let input_slice = std::slice::from_raw_parts(context_data, context_len);
+        let context_proto = OtherContext::decode(input_slice)
+            .map_err(|_| Error::InvalidJson("Invalid Proto Context".into()))?;
+
+        let context: Context = context_proto.into();
+
+        let result = engine.is_enabled(toggle_name, &context, &None);
+
+        Ok(result)
+    })();
+
+    result.unwrap_or_else(|_| false)
+}
+
 unsafe fn get_engine(engine_ptr: *mut c_void) -> Result<ManagedEngine, Error> {
     if engine_ptr.is_null() {
         return Err(Error::NullError);
