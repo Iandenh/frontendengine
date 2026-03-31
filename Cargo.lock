@@ -705,9 +705,9 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.12.2"
+version = "1.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "843bc0191f75f3e22651ae5f1e72939ab2f72a4bc30fa80a066bd66edefc24d4"
+checksum = "e10754a14b9137dd7b1e3e5b0493cc9171fdd105e0ab477f51b72e7f3ac0e276"
 dependencies = [
  "aho-corasick",
  "memchr",
@@ -885,9 +885,9 @@ checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
 
 [[package]]
 name = "unleash-types"
-version = "0.15.21"
+version = "0.15.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d614547915ce8248571152cd647bb3b4b943e0d96d91ae832292669002ac2587"
+checksum = "f353106eed861507cc196874f307f466cdd5339c18d1d5542ca96ac9b1625696"
 dependencies = [
  "chrono",
  "derive_builder",
@@ -897,9 +897,9 @@ dependencies = [
 
 [[package]]
 name = "unleash-yggdrasil"
-version = "0.20.2"
+version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3c1e7fe2ded153cc48e8ea079d53efcd4595de42e0a985ef53ce80fe4c1aff4"
+checksum = "ec37de350a43b5c6fdc836fe204eadb5da55b312e4cda5d543f21e24b6201117"
 dependencies = [
  "ahash",
  "chrono",
@@ -913,6 +913,7 @@ dependencies = [
  "pest",
  "pest_derive",
  "rand",
+ "regex",
  "semver",
  "serde",
  "serde_json",
