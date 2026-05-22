@@ -12,7 +12,7 @@ name = "frontendengine"
 unleash-yggdrasil = "0.21.1"
 prost = "0.14"
 serde = "1.0.228"
-serde_json = "1.0.149"
+serde_json = "1.0.150"
 
 [build-dependencies]
 prost-build = "0.14.1"
