@@ -9,7 +9,7 @@ name = "frontendengine"
 
 
 [dependencies]
-unleash-yggdrasil = "0.21.1"
+unleash-yggdrasil = "0.21.2"
 prost = "0.14"
 serde = "1.0.228"
 serde_json = "1.0.150"
