@@ -16,6 +16,10 @@ fn main() -> Result<()> {
         println!("cargo:rerun-if-changed={proto}");
     }
 
+    // Which protoc is used is an input to the build, so a change to it has to
+    // rerun this script. Without this, Cargo only watches the files above.
+    println!("cargo:rerun-if-env-changed=PROTOC");
+
     prost_build::compile_protos(PROTOS, &["src/"])?;
     Ok(())
 }

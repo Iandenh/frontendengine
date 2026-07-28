@@ -121,6 +121,14 @@ rather than fixed:
 * `include_all` is a `const bool *` rather than a `bool`, so a null pointer is
   an error case that would not otherwise exist. Its position between
   `context_data` and `context_len` also separates the pointer from its length.
+* The producing and freeing functions disagree about const-ness:
+  `take_state` returns `const char *` but `free_response` takes `char *`, and
+  `resolve`/`resolve_all` return `const uint8_t *` while `free_rust_buffer`
+  takes `uint8_t *`. A C caller therefore has to discard `const` to free what
+  it was given. cgo is unaffected — it maps both spellings to `*C.char` — so
+  this costs nothing today, and aligning it would only move the cast into Rust,
+  since `CString::from_raw` and `Box::from_raw` need a mutable pointer to take
+  ownership. Worth fixing if a direct C consumer ever appears.
 * `ResolvedToggle.project` is available from Yggdrasil but is not carried in
   `EvaluatedToggle`, so it never reaches the caller.
 * The `Variant` and `ResolvedToggle` messages in `toggles.proto` are unused by

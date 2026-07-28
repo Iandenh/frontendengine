@@ -489,7 +489,7 @@ fn result_to_json_ptr<T: Serialize>(result: Result<Option<T>, Error>) -> *const 
 
     let response: Response<T> = result.into();
 
-    // `CString::new` rejects interior NUL bytes. serde escapes them as ` `
+    // `CString::new` rejects interior NUL bytes. serde escapes them as `\u0000`
     // inside JSON strings, so this should be unreachable — but the caller gets a
     // valid response either way rather than a panic.
     match serde_json::to_string(&response).map(CString::new) {
