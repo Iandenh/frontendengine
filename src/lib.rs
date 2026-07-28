@@ -68,7 +68,6 @@ enum Error {
     Utf8,
     Null,
     InvalidJson(String),
-    PartialUpdate(Vec<EvalWarning>),
     InvalidProto(String),
     /// The engine has not been given any toggle state yet.
     StateNotLoaded,
@@ -84,10 +83,6 @@ impl Display for Error {
             Error::Utf8 => write!(f, "Detected a non UTF-8 string in the input, this is a serious issue and you should report this as a bug."),
             Error::Null => write!(f, "Null error detected, this is a serious issue and you should report this as a bug."),
             Error::InvalidJson(message) => write!(f, "Failed to parse JSON: {message}"),
-            Error::PartialUpdate(messages) => write!(
-                f,
-                "Engine state was updated but warnings were reported, this may result in some flags evaluating in unexpected ways, please report this: {messages:?}"
-            ),
             Error::InvalidProto(message) => write!(f, "Invalid Proto Buf input detected: {message}"),
             Error::StateNotLoaded => write!(f, "The engine has not received any feature toggle state yet."),
             Error::ToggleNotFound => write!(f, "No feature toggle with that name is known to the engine; it may not exist, or the engine may not have received state yet."),
@@ -177,6 +172,12 @@ pub unsafe extern "C" fn free_engine(engine_ptr: *mut c_void) {
 /// Always returns a non-null JSON [`Response`], which the caller must release
 /// with [`free_response`].
 ///
+/// On success `value` holds the warnings reported while compiling the state —
+/// an empty list when everything compiled. Warnings are *not* failures: the
+/// state was applied, and only the toggles named in them are affected (they
+/// evaluate as off). A rejected update instead leaves the previous state in
+/// place and sets `error_message`.
+///
 /// # Safety
 /// `engine_ptr` must be null or from [`new_engine`]; `json_ptr` must be null or
 /// a valid NUL-terminated C string that stays alive for the call.
@@ -189,14 +190,26 @@ pub unsafe extern "C" fn take_state(
         let engine = unsafe { get_engine(engine_ptr) }?;
         let toggles: UpdateMessage = unsafe { get_json(json_ptr) }?;
 
-        let mut state = write_lock(&engine);
-        match state.take_state(toggles) {
-            Some(warnings) => Err(Error::PartialUpdate(warnings)),
-            None => Ok(Some(())),
-        }
+        let warnings = {
+            let mut state = write_lock(&engine);
+            state.take_state(toggles)
+        };
+
+        Ok(Some(
+            warnings
+                .unwrap_or_default()
+                .iter()
+                .map(describe_warning)
+                .collect::<Vec<String>>(),
+        ))
     });
 
     result_to_json_ptr(result)
+}
+
+/// Renders a compile warning as one line naming the toggle it concerns.
+fn describe_warning(warning: &EvalWarning) -> String {
+    format!("{}: {}", warning.toggle_name, warning.message)
 }
 
 /// Evaluates every known toggle.

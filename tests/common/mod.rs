@@ -19,6 +19,26 @@ pub const STATE: &str = r#"{
   ]
 }"#;
 
+/// A state document that applies cleanly but cannot compile one toggle, so the
+/// engine reports warnings alongside a successful update. `flag.on` is included
+/// so tests can check the rest of the state still works.
+pub const STATE_WITH_WARNINGS: &str = r#"{
+  "version": 2,
+  "features": [
+    {"name": "flag.on", "enabled": true, "strategies": [{"name": "default"}]},
+    {
+      "name": "flag.uncompilable",
+      "enabled": true,
+      "strategies": [{
+        "name": "default",
+        "constraints": [
+          {"contextName": "userId", "operator": "NOT_A_REAL_OPERATOR", "values": ["1"]}
+        ]
+      }]
+    }
+  ]
+}"#;
+
 /// An engine with `STATE` loaded. Caller must `free_engine`.
 pub fn engine_with_state() -> *mut c_void {
     let engine = new_engine();

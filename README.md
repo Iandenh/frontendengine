@@ -79,11 +79,25 @@ functions accept `NULL`.
 
 ### Return values
 
-`take_state` always returns a non-null, parseable JSON `Response`:
+`take_state` always returns a non-null, parseable JSON `Response`. On success,
+`value` lists the warnings reported while compiling the state:
 
 ```json
-{"status_code": "Ok", "value": null, "error_message": null}
+{"status_code": "Ok", "value": [], "error_message": null}
 ```
+
+```json
+{"status_code": "Ok",
+ "value": ["some.flag: Failed to compile toggle, this will always be off ..."],
+ "error_message": null}
+```
+
+**Warnings are not failures.** The state was applied; only the toggles named in
+the warnings are affected, and those evaluate as off. A real Unleash feature
+file routinely contains a toggle this engine version cannot compile, so treating
+warnings as an error makes every refresh look like it failed. A *rejected*
+update is the different case: the previous state stays in place and
+`error_message` is set.
 
 `status_code` is serialised as a **string** — `"Ok"`, `"NotFound"` or
 `"Error"` — not as a number. The `-2 / -1 / 1` discriminants in the Rust enum

@@ -33,6 +33,12 @@ void free_engine(void *engine_ptr);
  * Always returns a non-null JSON [`Response`], which the caller must release
  * with [`free_response`].
  *
+ * On success `value` holds the warnings reported while compiling the state —
+ * an empty list when everything compiled. Warnings are *not* failures: the
+ * state was applied, and only the toggles named in them are affected (they
+ * evaluate as off). A rejected update instead leaves the previous state in
+ * place and sets `error_message`.
+ *
  * # Safety
  * `engine_ptr` must be null or from [`new_engine`]; `json_ptr` must be null or
  * a valid NUL-terminated C string that stays alive for the call.
