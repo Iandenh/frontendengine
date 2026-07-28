@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+# Deliberately no `RUSTFLAGS: -D warnings`: that applies to dependencies too, so
+# a warning in any upstream crate would break CI. Lints for this crate are
+# configured in the `[lints]` table in Cargo.toml.
+
+jobs:
+  check:
+    name: Build, lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      # protoc comes from protoc-bin-vendored, so there is nothing to install.
+      - name: Formatting
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Build
+        run: cargo build --verbose
+
+      # Debug catches the extra UB precondition assertions; release is what
+      # actually ships, and it is where those assertions are compiled out.
+      - name: Test (debug)
+        run: cargo test --verbose
+
+      - name: Test (release)
+        run: cargo test --release --verbose
+
+  header:
+    name: Generated header is current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cbindgen
+        run: cargo install cbindgen --locked
+
+      # An out-of-date header reaches Go as a silent ABI mismatch, which for the
+      # (ptr, len) buffer protocol means memory corruption rather than a
+      # compile error. Regenerate and diff so a signature change cannot land
+      # without the header that describes it.
+      - name: Regenerate and compare
+        run: |
+          cbindgen --config cbindgen.toml --lang c --crate frontendengine \
+                   --output /tmp/frontend_engine.h
+          if ! diff -u frontend_engine.h /tmp/frontend_engine.h; then
+            echo "::error::frontend_engine.h is out of date. Regenerate it with:"
+            echo "  cbindgen --config cbindgen.toml --lang c --crate frontendengine --output frontend_engine.h"
+            exit 1
+          fi

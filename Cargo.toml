@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib", "staticlib"]
+# `rlib` is only here so the integration tests in `tests/` can link the crate.
+# The artifacts consumed by Overleash are `cdylib` / `staticlib`.
+crate-type = ["cdylib", "staticlib", "rlib"]
 name = "frontendengine"
 
 
@@ -14,5 +16,27 @@ prost = "0.14"
 serde = "1.0.228"
 serde_json = "1.0.150"
 
+# Scoped to this crate only, unlike RUSTFLAGS.
+[lints.rust]
+# Every raw-pointer operation inside an `unsafe fn` must say so explicitly,
+# rather than inheriting a blanket unsafe body. This is the default from edition
+# 2024 onwards; opting in early keeps the unsafe surface visible at each use.
+unsafe_op_in_unsafe_fn = "deny"
+
+[lints.clippy]
+# The FFI layer must stay panic-free: these are the constructs that reintroduce
+# the abort-across-the-boundary failure this crate had.
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+
+[dev-dependencies]
+prost = "0.14"
+serde_json = "1.0.150"
+
 [build-dependencies]
 prost-build = "0.14.4"
+# Ships a protoc binary so `cargo build` needs no system protobuf-compiler.
+# prost-build requires protoc >= 3.15 for the proto3 `optional` fields in
+# context.proto, which is newer than many distro packages.
+protoc-bin-vendored = "3.2.0"
