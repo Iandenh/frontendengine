@@ -27,14 +27,13 @@ use prost::Message;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ffi::{c_char, c_void, CStr, CString};
-use std::fmt;
-use std::fmt::{Display, Formatter};
+use std::fmt::{self, Display, Formatter};
 use std::mem::forget;
 use std::panic::AssertUnwindSafe;
 use std::str::Utf8Error;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use unleash_yggdrasil::{Context, EngineState, EvalWarning, ResolvedToggle, UpdateMessage};
-use unleashengine::{EvaluatedToggle, EvaluatedVariant, VariantPayload};
+use unleashengine::{Context as ProtoContext, EvaluatedToggle, EvaluatedVariant, VariantPayload};
 
 pub mod unleashengine {
     include!(concat!(env!("OUT_DIR"), "/unleashengine.rs"));
@@ -45,10 +44,8 @@ pub mod unleashengine {
 type RawPointerDataType = RwLock<EngineState>;
 type ManagedEngine = Arc<RawPointerDataType>;
 
-use unleashengine::Context as OtherContext;
-
-impl From<OtherContext> for Context {
-    fn from(value: OtherContext) -> Self {
+impl From<ProtoContext> for Context {
+    fn from(value: ProtoContext) -> Self {
         Context {
             user_id: value.user_id,
             session_id: value.session_id,
@@ -120,9 +117,9 @@ struct Response<T> {
 impl<T> From<Result<Option<T>, Error>> for Response<T> {
     fn from(value: Result<Option<T>, Error>) -> Self {
         match value {
-            Ok(Some(enabled)) => Response {
+            Ok(Some(value)) => Response {
                 status_code: ResponseCode::Ok,
-                value: Some(enabled),
+                value: Some(value),
                 error_message: None,
             },
             Ok(None) => Response {
@@ -440,7 +437,7 @@ unsafe fn as_slice<'a>(data: *const u8, len: usize) -> Result<&'a [u8], Error> {
 /// See [`as_slice`].
 unsafe fn decode_context(data: *const u8, len: usize) -> Result<Context, Error> {
     let bytes = unsafe { as_slice(data, len) }?;
-    let proto = OtherContext::decode(bytes).map_err(|e| Error::InvalidProto(e.to_string()))?;
+    let proto = ProtoContext::decode(bytes).map_err(|e| Error::InvalidProto(e.to_string()))?;
     Ok(proto.into())
 }
 
