@@ -46,6 +46,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
+name = "arc-swap"
+version = "1.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "380962b3d93b99642e50b9febf72c071e97e8b32d86eae9cf4ef582bb960ae6e"
+dependencies = [
+ "rustversion",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -978,11 +987,12 @@ dependencies = [
 
 [[package]]
 name = "unleash-yggdrasil"
-version = "0.21.5"
+version = "0.21.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8df5e1811890a75dc6ad7cd9348d630353df2cdb8d38c6b2d58e4599f3d9486b"
+checksum = "c5ff568e5b1523ac9a320e384b56ff7d6e3d34d69a8836f14977c531142778ec"
 dependencies = [
  "ahash",
+ "arc-swap",
  "chrono",
  "convert_case",
  "dashmap",
