@@ -188,7 +188,7 @@ pub unsafe extern "C" fn take_state(
         let toggles: UpdateMessage = unsafe { get_json(json_ptr) }?;
 
         let warnings = {
-            let mut state = write_lock(&engine);
+            let state = write_lock(&engine);
             state.take_state(toggles)
         };
 
